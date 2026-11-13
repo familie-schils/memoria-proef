@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Memoria proef 0a: offline video</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<meta name="theme-color" content="#2b3440">
+<style>
+  :root { --bg:#f6f4ef; --kaart:#fff; --tekst:#1d2329; --zacht:#5b6570; --lijn:#d9d5cc; --accent:#2b3440; --goed:#1f7a3d; --fout:#b3261e; --waarsch:#8a5a00; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#14181c; --kaart:#1e242a; --tekst:#eceae4; --zacht:#a3acb5; --lijn:#38414a; --accent:#c9d3dd; --goed:#6fcf8e; --fout:#ff8a80; --waarsch:#f0c060; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--tekst); font:16px/1.45 system-ui, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 1.35rem; margin: 8px 0 4px; }
+  h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .mock { background:#fde9b8; color:#4a3500; padding:8px 12px; border-radius:8px; font-size:.9rem; margin: 8px 0 14px; }
+  section { background:var(--kaart); border:1px solid var(--lijn); border-radius:10px; padding:14px; margin-bottom:14px; }
+  table { width:100%; border-collapse:collapse; font-size:.92rem; }
+  td { padding:5px 4px; border-bottom:1px solid var(--lijn); vertical-align:top; overflow-wrap:anywhere; }
+  td:first-child { color:var(--zacht); width:46%; }
+  button, select, .knop { font:inherit; padding:9px 12px; border-radius:8px; border:1px solid var(--accent); background:var(--kaart); color:var(--tekst); cursor:pointer; margin:3px 3px 3px 0; min-height:42px; }
+  button.hoofd { background:var(--accent); color:var(--bg); }
+  button:disabled { opacity:.45; cursor:default; }
+  .rij { display:flex; flex-wrap:wrap; align-items:center; gap:4px; padding:6px 0; border-bottom:1px solid var(--lijn); }
+  .rij b { min-width:90px; }
+  .goed { color:var(--goed); font-weight:600; } .fout { color:var(--fout); font-weight:600; } .waarsch { color:var(--waarsch); font-weight:600; }
+  progress { width:100%; height:16px; }
+  video { width:100%; max-height:50vh; background:#000; border-radius:8px; margin-top:8px; }
+  textarea { width:100%; height:220px; font:12px/1.4 ui-monospace, Consolas, monospace; background:var(--bg); color:var(--tekst); border:1px solid var(--lijn); border-radius:8px; padding:8px; }
+  ol { padding-left: 20px; margin: 6px 0; } small { color:var(--zacht); }
+  input[type=file] { max-width:100%; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Memoria · proef 0a: video offline bewaren</h1>
+  <div class="mock"><b>Testpagina met voorbeeldmateriaal (mock).</b> Geen echte dossiers, geen echte personen. Alles blijft op dit toestel; er wordt niets verstuurd.</div>
+
+  <section>
+    <h2>Zo test je</h2>
+    <ol>
+      <li>Tik op <b>Vraag blijvende opslag aan</b>.</li>
+      <li>Bewaar de bestanden van 50 MB, 200 MB en 1 GB (knop <b>Maak op toestel</b>).</li>
+      <li>Zet het toestel in <b>vliegtuigmodus</b>, sluit de browser volledig en herstart het toestel.</li>
+      <li>Open deze pagina opnieuw (nog steeds zonder internet). Tik op <b>Controleer alles</b> en daarna bij elk bestand op <b>Speel af</b>.</li>
+      <li>Tik onderaan op <b>Kopieer verslag</b> en bezorg de tekst.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>1. Toestel en opslagruimte</h2>
+    <table id="toestel"></table>
+    <button id="persist" class="hoofd">Vraag blijvende opslag aan</button>
+    <button id="vernieuw">Vernieuw cijfers</button>
+  </section>
+
+  <section>
+    <h2>2. Bestanden bewaren</h2>
+    <label>Manier van bewaren:
+      <select id="methode">
+        <option value="opfs">Bestandsopslag van de browser (OPFS)</option>
+        <option value="idb">Database van de browser (IndexedDB, stukken van 8 MB)</option>
+      </select>
+    </label>
+    <div id="maten"></div>
+    <div class="rij"><b>Eigen video</b> <input type="file" id="eigen" accept="video/mp4,video/*"></div>
+    <p id="bezig" hidden><span id="bezigTekst"></span><progress id="voortgang" max="1" value="0"></progress></p>
+    <small>"Maak op toestel" neemt een korte voorbeeldvideo en vult die aan tot de gevraagde grootte (gesimuleerd bestand, wel echt afspeelbaar). "Download" haalt een echte testvideo van die grootte op, als die op de server staat.</small>
+  </section>
+
+  <section>
+    <h2>3. Bewaarde bestanden</h2>
+    <div id="lijst"><small>Nog niets bewaard.</small></div>
+    <button id="controleer" class="hoofd">Controleer alles</button>
+    <button id="wisalles">Wis alles</button>
+    <video id="video" controls playsinline muted hidden></video>
+    <div id="speelUitslag"></div>
+  </section>
+
+  <section>
+    <h2>4. Verslag</h2>
+    <textarea id="verslag" readonly></textarea>
+    <button id="kopieer" class="hoofd">Kopieer verslag</button>
+    <button id="wislog">Wis verslag</button>
+  </section>
+</main>
+<script src="app.js"></script>
+</body>
+</html>
